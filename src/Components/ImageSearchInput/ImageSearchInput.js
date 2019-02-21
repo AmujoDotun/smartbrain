@@ -5,7 +5,7 @@ const ImageSearchInput =() =>{
     return(
         <div>
             <p className="f3">
-                {'This magin app wil detect your faces in your picture, give it a try'}
+                {'This magic app wil detect faces in your picture, give it a try'}
             </p>
             <div className="center">
                 <div className=" center form pa4 br3 shadow-5">
