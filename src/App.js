@@ -1,10 +1,16 @@
 import React, { Component } from 'react';
+import Clarifai from 'clarifai';
 import Navigation from './Components/Navigation/Navigation';
 import Logo from './Components/Logo/Logo';
 import Rank from './Components/Rank/Rank';
 import ImageSearchInput from './Components/ImageSearchInput/ImageSearchInput';
+import FaceRecognition from './Components/FaceRecognition/FaceRecognition';
 import './App.css';
 import Particles from 'react-particles-js';
+
+const app = new Clarifai.App({
+  apiKey: 'cbeec327769b4f29b84e08b42e49ae1f'
+ });
 
 const particleOption ={
   particles:{
@@ -19,6 +25,54 @@ const particleOption ={
 }
 
 class App extends Component {
+  constructor(){
+    super();
+    this.state = {
+      input: '',
+      imageUrl: '',
+      box: {}
+    }
+  }
+
+  
+CalculateFaceLocation = (data) =>{
+   const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box
+   const image = document.getElementById('inputImage');
+   const width = Number(image.width);
+   const height = Number(image.height);
+  //  console.log(width, height);
+
+   return{
+     leftCol: clarifaiFace.left_col * width,
+     topRow: clarifaiFace.top_row * height,
+     rightCol: width - (clarifaiFace.right_col * width),
+     bottomRow: height - (clarifaiFace.bottom_row *height)
+
+   }
+}
+
+displayFaceBox = (box) =>{
+     this.setState({box: box});
+     console.log(box);
+}
+
+
+onInputChange =(event) =>{
+  this.setState({input:event.target.value});
+}
+
+onButtonSubmit =() => {
+    this.setState({imageUrl: this.state.input})
+  app.models
+  .predict(
+    Clarifai.FACE_DETECT_MODEL,
+    this.state.input)
+
+    .then(response => this.displayFaceBox(this.CalculateFaceLocation(response)))
+    .catch(err => console.log(err));
+  
+}
+
   render() {
     return (
       <div className="App">
@@ -27,10 +81,11 @@ class App extends Component {
         <Navigation />
         <Logo />
         <Rank />
-        <ImageSearchInput />
-        {/* {
-        
-        <FaceRecongnition />} */}
+        <ImageSearchInput 
+        onInputChange ={this.onInputChange} 
+        onButtonSubmit={this.onButtonSubmit}/>
+        <FaceRecognition box ={this.state.box} imageUrl={this.state.imageUrl} />
+      
       </div>
     );
   }
